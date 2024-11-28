@@ -15,33 +15,38 @@ const io = new Server(server, {
 
 const rooms = {};
 
-// Updated encryptMessage function using crypto.createCipheriv
+// Function to ensure the key is 32 bytes long by hashing it with SHA-256
+const getKey = (secret) => {
+  return crypto.createHash('sha256').update(secret).digest();
+};
+
+// Encrypt message using AES-256-CTR
 const encryptMessage = (message, secret) => {
-  // Generate a random initialization vector (IV)
-  const iv = crypto.randomBytes(16); // 16 bytes for AES-256-CTR
-  const cipher = crypto.createCipheriv('aes-256-ctr', Buffer.from(secret, 'hex'), iv);
+  const key = getKey(secret); // Ensure the key is 32 bytes long
+  const iv = crypto.randomBytes(16); // 16-byte IV for AES-256-CTR
+
+  const cipher = crypto.createCipheriv('aes-256-ctr', key, iv);
   let encrypted = cipher.update(message, 'utf8', 'hex');
   encrypted += cipher.final('hex');
 
-  // Return both the encrypted message and the IV (you need to send the IV with the message for decryption)
+  // Return both the IV and the encrypted message
   return iv.toString('hex') + ':' + encrypted;
 };
 
-// Decrypt message function
+// Decrypt message using AES-256-CTR
 const decryptMessage = (encryptedMessage, secret) => {
-  // Extract the IV and encrypted message
+  const key = getKey(secret); // Ensure the key is 32 bytes long
   const parts = encryptedMessage.split(':');
   const iv = Buffer.from(parts[0], 'hex');
   const encryptedText = parts[1];
 
-  const decipher = crypto.createDecipheriv('aes-256-ctr', Buffer.from(secret, 'hex'), iv);
+  const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
   let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
 
   return decrypted;
 };
 
-// Route to serve something on the root URL
 app.get('/', (req, res) => {
   res.send('Welcome to the Private Room Chat backend!');
 });
@@ -59,7 +64,7 @@ io.on('connection', (socket) => {
   socket.on('send-message', ({ roomId, message, secret }) => {
     const encryptedMessage = encryptMessage(message, secret);
     const sender = rooms[roomId]?.users.find((u) => u.id === socket.id);
-    
+
     if (sender) {
       io.to(roomId).emit('receive-message', {
         username: sender.username,
@@ -78,7 +83,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Use the dynamic port (for deployment) or fallback to 5001 (for local development)
 const PORT = process.env.PORT || 5010;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
