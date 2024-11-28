@@ -8,6 +8,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Simple route to avoid "Cannot GET /" error
+app.get('/', (req, res) => {
+  res.send('Welcome to the Private Room Chat backend!');
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' },
