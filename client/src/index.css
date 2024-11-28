@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; }
+input, button { margin: 5px; padding: 10px; }
+@media (max-width: 600px) {
+  h1, h2 { font-size: 1.5rem; }
+  input, button { width: 100%; }
+}
+
