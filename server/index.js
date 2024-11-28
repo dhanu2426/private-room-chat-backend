@@ -35,14 +35,20 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('user-joined', username);
   });
 
-  socket.on('send-message', ({ roomId, message, secret }) => {
-    const encryptedMessage = encryptMessage(message, secret);
-    io.to(roomId).emit('receive-message', {
-      username: rooms[roomId].users.find((u) => u.id === socket.id).username,
-      message: encryptedMessage,
+    socket.on('send-message', ({ roomId, message, secret }) => {
+      const encryptedMessage = encryptMessage(message, secret);
+      const sender = rooms[roomId]?.users.find((u) => u.id === socket.id);
+    
+      if (sender) {
+        io.to(roomId).emit('receive-message', {
+          username: sender.username,
+          message: encryptedMessage,
+        });
+      } else {
+        console.error('Sender not found in room.');
+      }
     });
-  });
-
+    
   socket.on('disconnect', () => {
     for (const room in rooms) {
       rooms[room].users = rooms[room].users.filter((u) => u.id !== socket.id);
