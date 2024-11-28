@@ -46,4 +46,8 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(5001, () => console.log('Server running on http://localhost:5001'));
+// Use the dynamic port (for deployment) or fallback to 5001 (for local development)
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
