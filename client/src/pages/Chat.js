@@ -12,7 +12,7 @@ const Chat = () => {
 
   // Replace with your backend URL (Render or localhost)
   const serverURL = 'https://private-room-chat-backend-3.onrender.com'; // For Render
-  // const serverURL = 'http://localhost:5005'; // For local development
+  // const serverURL = 'http://localhost:5009'; // For local development
 
   useEffect(() => {
     // Establish the socket connection when the component mounts
